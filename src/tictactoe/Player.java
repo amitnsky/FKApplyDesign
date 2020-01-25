@@ -15,7 +15,7 @@ public class Player {
 
     public boolean makeNextMove(Grid grid){
         Scanner scanner = new Scanner(System.in);
-        System.out.println(getName() + ", make a move. (row, col)");
+        System.out.println("\n" + getName() + ", make a move. (row, col)");
         lastMoveX = scanner.nextInt();
         lastMoveY = scanner.nextInt();
         if(!grid.setCharAt(getMoveCode(), lastMoveX, lastMoveY)){

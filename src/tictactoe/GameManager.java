@@ -26,14 +26,14 @@ public class GameManager {
         mGrid = new Grid(3);
 
         System.out.println("Choose the gaming mode: "
-                + "\n1: Human vs Human "
-                + " \n2: Human vs Machine(Not Valid till now, Choose 1) ");
+                + "\n1: Human vs Machine "
+                + " \n2: Human vs Human");
 
-        int mode = 2;
+        int mode = 1;
         if(!mScanner.hasNextInt()) return false;
         mode = mScanner.nextInt();
 
-        if(!takePlayersInfo(mPlayers, 2))
+        if(!takePlayersInfo(mPlayers, mode))
             return false;
 
         return true;
@@ -89,6 +89,11 @@ public class GameManager {
                 code = mScanner.next().charAt(0);
 
             playerList.add(new Player(name, code));
+        }
+
+        if(nOfPlayers == 1){
+            System.out.println("Player 2: \nName: Machine\nCode: M\n");
+            playerList.add(new MachinePlayer());
         }
         return true;
     }

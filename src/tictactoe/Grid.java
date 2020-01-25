@@ -87,4 +87,17 @@ public class Grid {
         return mChanges>0;
     }
 
+    public boolean setNextEmpty(char code){
+        if(!canMove()) return false;
+        for(int i=0; i<mMaxDimension; i++){
+            for(int j=0; j<mMaxDimension; j++){
+                if(mGrid.get(i).get(j) != INVALID_VALUE) continue;
+                System.out.println(i + " " + j);
+                mGrid.get(i).set(j, code);
+                return true;
+            }
+        }
+        return true;
+    }
+
 }
