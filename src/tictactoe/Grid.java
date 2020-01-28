@@ -9,6 +9,8 @@ public class Grid {
     private int mMaxDimension;
     int mChanges;
     private List<List<Character>> mGrid;
+    private Player playerWon;
+    private int isWon;
 
     public Grid(int mxDimen){
         mMaxDimension = mxDimen ;
@@ -43,7 +45,10 @@ public class Grid {
         }
     }
 
-    public boolean isWinning(char code, int r, int c){
+    public boolean isWinning(Player player){
+        char code = player.getMoveCode();
+        int r = player.getLastMoveX();
+        int c = player.getLastMoveY();
         //check top-down col
         int cells = 0;
         for(int i = 0; i< mMaxDimension; i++){
@@ -100,4 +105,14 @@ public class Grid {
         return true;
     }
 
+    public List<List<Character>> getGrid(){
+        return mGrid;
+    }
+    public Player getPlayerWon() {
+        return playerWon;
+    }
+
+    public int getIsWon() {
+        return isWon;
+    }
 }
