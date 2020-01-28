@@ -91,7 +91,7 @@ public class GridManager {
         manager.setGameLevel(manager.getGameLevel() + 1);
         manager.setGridsList(new ArrayList<>());
         for (int i = 0; i < (manager.getDimen() * manager.getExpandFactor()); i++) {
-            System.out.println("Adding new lists");
+           // System.out.println("Adding new lists");
             manager.getGridsList().add(new Grid(manager.getDimen()));
         }
     }

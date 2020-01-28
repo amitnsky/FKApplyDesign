@@ -39,8 +39,8 @@ public class GameManager {
     }
 
     // begins the game, takes no args, return void.
-    public void startGame() {
-        if (!init()) return;
+    public int startGame() {
+        if (!init()) return 100;
         mLogger.entering("Game Manager", "StartGame");
         mGridManager.moveToNextLevel();
         // keep playing while there is a single box left empty
@@ -85,10 +85,10 @@ public class GameManager {
         }
         if (!mGridManager.canMove()) {
             System.out.println("Draw!!");
-            return;
+            return 100;
         }
         mLogger.exiting("Game Manager", "StartGame");
-
+        return mCurrentPlayerIndex;
     }
 
     private boolean makeNextMove(Player player) {
