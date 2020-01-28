@@ -52,6 +52,14 @@ public class GameManager {
             //keep asking for input from current player, unless he provides a correct input.
             while (!makeNextMove(currentPlayer)) ;
 
+            Move lastMove = new Move(mGridManager.getCurrentGridIndex(), currentPlayer.getLastMoveX(), currentPlayer.getLastMoveY());
+            System.out.println("Press 1 to undo last move, 2 to continue: ");
+            int opt = mScanner.nextInt();
+            if(opt == 1){
+                mGridManager.undoMove(lastMove);
+                continue;
+            }
+
             if (isWinningGame(currentPlayer)) {
                 mGridManager.print();
                 System.out.println(currentPlayer.getName() + " Won!!");

@@ -121,6 +121,9 @@ public class GridManager {
     }
 
 
+    public void undoMove(Move move){
+        GridManager.getInstance().getGridsList().get(move.gridindex).setCharAt('-', move.getX(), move.getY());
+    }
 
     public void changeCurrentGrid() {
         GridManager manager = GridManager.getInstance();
