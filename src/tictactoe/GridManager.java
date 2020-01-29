@@ -16,6 +16,7 @@ public class GridManager {
     public int mCurrentGridIndex;
     private List<Grid> mGridsList;
     private static GridManager mGridManager;
+    private boolean isGridHex;
 
     public static GridManager getInstance() {
         if (mGridManager == null) {
@@ -36,6 +37,13 @@ public class GridManager {
             mGridManager.setGameLevel(GridManager.LEVEL_0);
         }
         return mGridManager;
+    }
+
+    public static GridManager getInstance(int initDimen, int initLevel, boolean isHex){
+        GridManager manager = getInstance(initDimen, initLevel);
+        manager.setIsGridHexa(isHex);
+        return manager;
+
     }
 
     public boolean isWinning(Player player) {
@@ -191,5 +199,9 @@ public class GridManager {
 
     public Grid getCurrentGrid() {
         return mGridsList.get(mCurrentGridIndex);
+    }
+
+    public void setIsGridHexa(boolean isHex){
+        isGridHex = isHex;
     }
 }

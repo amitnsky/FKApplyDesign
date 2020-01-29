@@ -11,9 +11,28 @@ public class Grid {
     private List<List<Character>> mGrid;
     private Player mPlayerWon;
     private boolean isWon;
+    private boolean isHexGrid;
 
     public Grid(int mxDimen) {
         mMaxDimension = mxDimen;
+        mChanges = mxDimen * mxDimen;
+        mGrid = new ArrayList<>();
+        isWon = false;
+
+        for (int i = 0; i < mMaxDimension; i++) {
+            ArrayList<Character> list = new ArrayList<>(mMaxDimension);
+            for (int j = 0; j < mMaxDimension; j++)
+                list.add(j, '-');
+            mGrid.add(list);
+        }
+    }
+
+    //init hexagonal grid
+    public Grid(int mxDimen, boolean isHex){
+        mMaxDimension = mxDimen;
+        isHexGrid = isHex;
+
+        //change accordingly
         mChanges = mxDimen * mxDimen;
         mGrid = new ArrayList<>();
         isWon = false;

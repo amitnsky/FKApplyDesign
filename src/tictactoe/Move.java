@@ -1,6 +1,11 @@
 package tictactoe;
 
 public class Move {
+
+    int gridindex;
+    int x;
+    int y;
+
     public int getGridindex() {
         return gridindex;
     }
@@ -13,15 +18,9 @@ public class Move {
         return y;
     }
 
-    int gridindex;
-    int x;
-    int y;
     public Move(int index, int xm, int ym){
         gridindex = index;
         x = xm;
         y = ym;
     }
-
-
-
 }
