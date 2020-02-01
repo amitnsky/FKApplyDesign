@@ -1,195 +1,66 @@
 package tictactoe;
 
-import sun.java2d.loops.GeneralRenderer;
-
-import java.lang.ref.PhantomReference;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
+import tictactoe.grids.EnhancedGrid;
+import tictactoe.grids.Grid;
+import tictactoe.grids.HexGrid;
 
 public class GridManager {
+
     private int mExpandFactor;
     private int mDimen;
-    private int level;
-    public static final int DEFAULT_GRID_DIMEN = 3;
-    public static final int LEVEL_0 = 0;
-    public int mCurrentGridIndex;
-    private List<Grid> mGridsList;
-    private static GridManager mGridManager;
+    private Grid mGrid;
+    private GRID_TYPES mCurrentGridType;
 
-    public static GridManager getInstance() {
-        if (mGridManager == null) {
-            mGridManager = GridManager.getInstance(DEFAULT_GRID_DIMEN, LEVEL_0);
-        }
-        return mGridManager;
-    }
+    public static enum GRID_TYPES {ENHANCED, HEXA}
 
-    public static GridManager getInstance(int initDimen, int initLevel) {
-        if (mGridManager == null) {
-            mGridManager = new GridManager();
-            mGridManager.mGridsList = new ArrayList<>();
-            mGridManager.getGridsList().add(new Grid(initDimen));
-            mGridManager.mGridsList.add(new Grid(initDimen));
-            mGridManager.setDimen(initDimen);
-            mGridManager.setExpandFactor(initDimen);
-            mGridManager.mCurrentGridIndex = 0;
-            mGridManager.setGameLevel(GridManager.LEVEL_0);
-        }
-        return mGridManager;
-    }
+    public static final int DEFAULT_ENHANCED_GRID_DIMEN = 3;
+    public static final int DEFAULT_HEX_GRID_DIMEN = 4;
 
-    public boolean isWinning(Player player) {
+    public static final char DEFAULT_CHAR = '-';
 
-        GridManager manager = GridManager.getInstance();
-
-        if (level == LEVEL_0) {
-            return manager.getGridsList().get(0).isWinning(player);
-        }
-
-        int gridIndex = manager.getGridIndex(player.getLastMoveX(), player.getLastMoveY());
-
-        // check this col grids
-        if (manager.getGridsList().get(gridIndex % 3).isWinning(player) &&
-                manager.getGridsList().get(((gridIndex % 3) + 3)).isWinning(player) &&
-                manager.getGridsList().get((gridIndex % 3) + 6).isWinning(player)) {
-            return true;
-        }
-
-        // check this row grids
-        if (manager.getGridsList().get((gridIndex / 3) * 3).isWinning(player) &&
-                manager.getGridsList().get(((gridIndex / 3) * 3 + 1)).isWinning(player) &&
-                manager.getGridsList().get((gridIndex % 3) * 3 + 2).isWinning(player)) {
-            return true;
-        }
-
-        // top-left to bottom-right diagonal
-        if (gridIndex / 3 == gridIndex % 3)
-            if (manager.getGridsList().get(0).isWinning(player) &&
-                    manager.getGridsList().get(4).isWinning(player) &&
-                    manager.getGridsList().get(8).isWinning(player)) {
-                return true;
-            }
-
-        // top-right to bottom-left diagonal
-        if (gridIndex / 3 == (3 - gridIndex % 3 - 1))
-            if (manager.getGridsList().get(2).isWinning(player) &&
-                    manager.getGridsList().get(4).isWinning(player) &&
-                    manager.getGridsList().get(6).isWinning(player)) {
-                return true;
-            }
-
-        return false;
-    }
-
-    // if can move in any of grids, return true.
-    public boolean canMove() {
-        return GridManager.getInstance().getGridsList().stream().anyMatch((g) -> !g.getIsWon() && g.canMove());
+    public GridManager(int initDimen, GRID_TYPES grid_type) {
+        mDimen = initDimen;
+        mExpandFactor = initDimen;
+        mCurrentGridType = grid_type;
+        setUpGrid();
     }
 
     public void moveToNextLevel() {
-        GridManager manager = GridManager.getInstance();
-        manager.setGameLevel(manager.getGameLevel() + 1);
-        manager.setGridsList(new ArrayList<>());
-        for (int i = 0; i < (manager.getDimen() * manager.getExpandFactor()); i++) {
-           // System.out.println("Adding new lists");
-            manager.getGridsList().add(new Grid(manager.getDimen()));
-        }
+        mDimen = mDimen * mExpandFactor;
+        setUpGrid();
     }
 
-    public void print() {
-        List<Grid> gridList = GridManager.getInstance().getGridsList();
-        if (GridManager.getInstance().getGameLevel() == GridManager.LEVEL_0) {
-            gridList.get(0).print();
-            return;
-        }
-        int mxDimen = GridManager.getInstance().getDimen();
-        int temp = level;
-        while (temp > 0) {
-            mxDimen = mxDimen * getExpandFactor();
-            temp--;
-        }
-        for (int row = 0; row < mxDimen; row++) {
-            for (int col = 0; col < mxDimen; col++) {
-                int index = getGridIndex(row, col);
-                System.out.print(gridList.get(index).getGrid().get(row % 3).get(col % 3) + " ");
-                if (col % 3 == 2) {
-                    System.out.print("| ");
-                }
-            }
-            System.out.println("");
-        }
+    void setUpGrid() {
+        GRID_TYPES grid_type = getGridType();
+        if (grid_type == GRID_TYPES.ENHANCED)
+            mGrid = new EnhancedGrid(mDimen);
+        else
+            mGrid = new HexGrid(mDimen);
     }
 
-
-    public void undoMove(Move move){
-        GridManager.getInstance().getGridsList().get(move.gridindex).setCharAt('-', move.getX(), move.getY());
+    public boolean isGameOver() {
+        return !mGrid.canMove();
     }
 
-    public void changeCurrentGrid() {
-        GridManager manager = GridManager.getInstance();
-       // System.out.println("Changing grid actually!!");
-        if (manager.canMove()) {
-            while (!manager.getCurrentGrid().canMove()) {
-                manager.setCurrentGridIndex((manager.getCurrentGridIndex()+1) % 9);
-             //   System.out.println("This is index " + manager.getCurrentGridIndex());
-            }
-        }
+    public void printGrids() {
+        mGrid.print();
     }
 
-    public void setCurrentGridIndex(int index){
-        mCurrentGridIndex = index;
+    public boolean setCharAt(char code, int r, int c) {
+        if (mGrid.getCharAt(r, c) != DEFAULT_CHAR) return false;
+        return mGrid.setCharAt(code, r, c);
     }
 
-    public int getCurrentGridIndex(){
-        return mCurrentGridIndex;
+    public boolean hasWon(char code, int r, int c) {
+        return mGrid.hasWonGame(code, r, c);
     }
 
-    private int getGridIndex(int r, int c) {
-        int dimen = GridManager.getInstance().getDimen();
-        return (r / dimen + c / dimen);
+    public boolean setNextEmpty(char code){
+        return mGrid.setNextEmpty(code);
     }
 
-    public boolean makeNextMove() {
-        return false;
+    GRID_TYPES getGridType() {
+        return mCurrentGridType;
     }
 
-    public void setmExpandFactor(int mExpandFactor) {
-        this.mExpandFactor = mExpandFactor;
-    }
-
-    public int getExpandFactor() {
-        return mExpandFactor;
-    }
-
-    public int getDimen() {
-        return mDimen;
-    }
-
-    public List<Grid> getGridsList() {
-        return mGridsList;
-    }
-
-    public void setDimen(int mDimen) {
-        this.mDimen = mDimen;
-    }
-
-    private void setExpandFactor(int d) {
-        mExpandFactor = d;
-    }
-
-    public void setGameLevel(int x) {
-        level = x;
-    }
-
-    public int getGameLevel() {
-        return level;
-    }
-
-    public void setGridsList(List<Grid> gridsList) {
-        mGridsList = gridsList;
-    }
-
-    public Grid getCurrentGrid() {
-        return mGridsList.get(mCurrentGridIndex);
-    }
 }

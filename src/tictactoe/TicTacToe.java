@@ -12,12 +12,10 @@ public class TicTacToe {
 
             System.out.println("Enter 1 to restart game, 2 to exit.");
 
-
             Scanner scanner = new Scanner(System.in);
-            int mode = scanner.nextInt();
-            if (mode == 1) {
+            int continueGamePlay = scanner.nextInt();
+            if (continueGamePlay == 1)
                 continue;
-            }
             break;
         }
         System.out.println("Score: \nPlayer1: " + score[0] + "\nPlayer2: " + score[1]);
