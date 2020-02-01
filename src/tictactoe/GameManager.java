@@ -1,113 +1,101 @@
 package tictactoe;
 
+import tictactoe.players.MachinePlayer;
+import tictactoe.players.Player;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Stack;
-import java.util.logging.Logger;
 
 // manages the game, starts with startGame.
 public class GameManager {
     private GridManager mGridManager;
     private List<Player> mPlayers;
-    private int mMaxPlayers;
     private int mCurrentPlayerIndex;
     private Scanner mScanner;
-    private Logger mLogger;
+
+
+    public static enum GAME_MODE {HUMAN_VS_HUMAN, HUMAN_VS_MACHINE}
 
     // init the game, asks for no of players, corresponding code, returns true if initialisation was successful.
     private boolean init() {
-        mLogger = Logger.getLogger(this.getClass().getSimpleName());
         mScanner = new Scanner(System.in);
         mPlayers = new ArrayList<>();
-        mCurrentPlayerIndex = 0;
-        mMaxPlayers = 2;
-        mGridManager = GridManager.getInstance(3, GridManager.LEVEL_0);
+        mCurrentPlayerIndex = -1;
 
-        System.out.println("Choose the gaming mode: "
-                + "\n1: Human vs Machine "
-                + " \n2: Human vs Human");
+        System.out.println("Enter\n"
+                + "1: Human vs Human\n"
+                + "2: Human vs Machine");
 
-        int mode = 1;
-        if (!mScanner.hasNextInt()) return false;
-        mode = mScanner.nextInt();
 
-        if (!takePlayersInfo(mPlayers, mode))
+        int mode = mScanner.nextInt();
+
+        GAME_MODE gametype = GAME_MODE.HUMAN_VS_MACHINE;
+
+        if (mode == 1) gametype = GAME_MODE.HUMAN_VS_HUMAN;
+
+        if (!takePlayersInfo(gametype))
             return false;
+
+        System.out.println("Choose\n" + "1: Enhanced TicTacToe\n" + "2: Hex TicTacToe");
+        int gridType = mScanner.nextInt();
+        if (gridType == 1)
+            mGridManager = new GridManager(GridManager.DEFAULT_ENHANCED_GRID_DIMEN, GridManager.GRID_TYPES.ENHANCED);
+        else mGridManager = new GridManager(GridManager.DEFAULT_HEX_GRID_DIMEN, GridManager.GRID_TYPES.HEXA);
+
 
         return true;
     }
 
     // begins the game, takes no args, return void.
+    // TODO: Refactor these return codes to enum.
     public int startGame() {
-        if (!init()) return 100;
-        mLogger.entering("Game Manager", "StartGame");
-        mGridManager.moveToNextLevel();
-        // keep playing while there is a single box left empty
-        while (mGridManager.canMove()) {
-            //print grid
-            mGridManager.print();
-            Player currentPlayer = mPlayers.get(mCurrentPlayerIndex);
+        if (!init()) return -100;
 
-            //keep asking for input from current player, unless he provides a correct input.
-            while (!makeNextMove(currentPlayer)) ;
-
-            Move lastMove = new Move(mGridManager.getCurrentGridIndex(), currentPlayer.getLastMoveX(), currentPlayer.getLastMoveY());
-            System.out.println("Press 1 to undo last move, 2 to continue: ");
-            int opt = mScanner.nextInt();
-            if(opt == 1){
-                mGridManager.undoMove(lastMove);
-                continue;
-            }
-
-            if (isWinningGame(currentPlayer)) {
-                mGridManager.print();
-                System.out.println(currentPlayer.getName() + " Won!!");
-
-                // if wants to continue, reset and start again
-                // else break
-                System.out.println("Press\n" + "1 to play for next level.\n" + "0 to exit.\n");
-                int shouldContinue = mScanner.nextInt();
-                if(shouldContinue == 1){
+        while (true) {
+            if (isGameOver()) {
+                if (getCurrentPlayer().hasWon()) {
+                    System.out.println(getCurrentPlayer().getName() + " has Won!");
+                }
+                System.out.println("Enter 1 to play next level, 0 to quit :");
+                int continueGame = mScanner.nextInt();
+                if (continueGame == 1) {
                     mGridManager.moveToNextLevel();
                     continue;
                 }
                 break;
-            }else if(mGridManager.getCurrentGrid().isWinning(currentPlayer)){
-                System.out.println("This grid is won. Changing Grid.\n");
-                mGridManager.getCurrentGrid().setPlayerWon(currentPlayer);
-                mGridManager.changeCurrentGrid();
             }
-
-
-            mCurrentPlayerIndex = (mCurrentPlayerIndex + 1) % mMaxPlayers;
-
+            if (!makeNextMove()) break;
         }
-        if (!mGridManager.canMove()) {
-            System.out.println("Draw!!");
-            return 100;
-        }
-        mLogger.exiting("Game Manager", "StartGame");
-        return mCurrentPlayerIndex;
+
+        if (getCurrentPlayer().hasWon())
+            return mCurrentPlayerIndex;
+        return -100;
     }
 
-    private boolean makeNextMove(Player player) {
-        GridManager manager = GridManager.getInstance();
-        return player.makeNextMove(manager.getCurrentGrid());
+    private boolean makeNextMove() {
+
+        mCurrentPlayerIndex = (mCurrentPlayerIndex + 1) % mPlayers.size();
+        Player player = getCurrentPlayer();
+
+        if (player instanceof MachinePlayer)
+            return ((MachinePlayer) player).makeNextMove(mGridManager);
+
+        return player.makeNextMove(mScanner, mGridManager);
     }
 
-    private boolean isWinningGame(Player currentPlayer) {
-        //  currentPlayer.getMoveCode(), currentPlayer.getLastMoveX(), currentPlayer.getLastMoveY())
-        return GridManager.getInstance().isWinning(currentPlayer);
+    private boolean isGameOver() {
+        return mGridManager.isGameOver();
     }
 
-    // clear up things before exiting game.
-    private void exitGame() {
-
+    public Player getCurrentPlayer() {
+        return mPlayers.get(mCurrentPlayerIndex);
     }
 
-    private boolean takePlayersInfo(List<Player> playerList, int nOfPlayers) {
-        for (int i = 0; i < nOfPlayers; i++) {
+    private boolean takePlayersInfo(GAME_MODE mode) {
+        int noOfPlayers = 1;
+        if (mode == GAME_MODE.HUMAN_VS_HUMAN) noOfPlayers = 2;
+        for (int i = 1; i <= noOfPlayers; i++) {
 
             String name = "Player " + i + 1;
             Character code = (char) (i + 65);
@@ -120,13 +108,30 @@ public class GameManager {
             if (mScanner.hasNext())
                 code = mScanner.next().charAt(0);
 
-            playerList.add(new Player(name, code));
+            mPlayers.add(new Player(name, code));
         }
 
-        if (nOfPlayers == 1) {
+        if (mode == GAME_MODE.HUMAN_VS_MACHINE) {
             System.out.println("Player 2: \nName: Machine\nCode: M\n");
-            playerList.add(new MachinePlayer());
+            mPlayers.add(new MachinePlayer());
         }
+
         return true;
     }
+
+    // clear up things before exiting game.
+    public void endGame() {
+    }
+
+    // save game state
+    public boolean saveGame() {
+        return false;
+    }
+
+    // restore game state
+    public boolean restoreGame() {
+        return false;
+    }
+
+
 }
